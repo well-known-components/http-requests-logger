@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  release:
+    types:
+      - created
+
+name: CI
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run check:code && npm run check:prettier
+      - name: build
+        run: npm run build
+      - name: Test
+        run: npm run test
+      - name: Publish
+        uses: menduz/oddish-action@master
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          access: public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
