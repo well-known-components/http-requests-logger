@@ -20,7 +20,7 @@ const logs = await createLogComponent()
 createHttpRequestsLogger({ server, logger: logs })
 ```
 
-Although only the server and the log components are required for this component to work, it is recommended to be used alongside the (tracer)[https://github.com/well-known-components/tracer-component] and (http-tracer components)[https://github.com/well-known-components/http-tracer-component] to make it possible to track and match each of the input and output requests.
+Although only the server and the log components are required for this component to work, it is recommended to be used alongside the [tracer](https://github.com/well-known-components/tracer-component) and [http-tracer components](https://github.com/well-known-components/http-tracer-component) to make it possible to track and match each of the input and output requests.
 
 ```ts
 import { createHttpRequestsLogger } from '@well-known-components/http-requests-logger'
