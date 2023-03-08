@@ -32,7 +32,7 @@ export function instrumentHttpServerWithRequestLogger(
       return response
     } catch (e) {
       // Craft a custom response with the purpose of printing the log
-      let statusCode = 500
+      let statusCode = 200
       if (typeof e === 'object' && e !== null && e !== undefined) {
         if ('status' in e && typeof e.status == 'number') {
           statusCode = e.status
@@ -41,8 +41,7 @@ export function instrumentHttpServerWithRequestLogger(
         }
       }
       response = {
-        status: statusCode,
-        url: ctx.request.url
+        status: statusCode
       }
       throw e
     } finally {
