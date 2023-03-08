@@ -38,9 +38,9 @@ beforeEach(() => {
   mockedContext = {
     request: {
       method: 'GET',
-      url: 'http://localhost/some-endpoint'
+      url: 'http://localhost/some-endpoint?someParameter=1'
     } as IHttpServerComponent.DefaultContext<object>['request'],
-    url: new URL('http://localhost/some-endpoint')
+    url: new URL('http://localhost/some-endpoint?someParameter=1')
   }
   mockedResponse = {
     headers: {
@@ -284,7 +284,9 @@ describe('when any of the following middlewares fail', () => {
 
     it('should log the output correctly based on the status code of the exception and propagate the error', async () => {
       await expect(storedMiddleware(mockedContext, mockedNext)).rejects.toEqual(error)
-      expect(loggers[1]?.info).toHaveBeenCalledWith(`[${mockedContext.request.method}: ${mockedContext.url.pathname}][400]`)
+      expect(loggers[1]?.info).toHaveBeenCalledWith(
+        `[${mockedContext.request.method}: ${mockedContext.url.pathname}${mockedContext.url.search}${mockedContext.url.hash}][400]`
+      )
     })
   })
 
@@ -297,7 +299,9 @@ describe('when any of the following middlewares fail', () => {
 
     it('should log the output correctly using the status code as 200', async () => {
       await expect(storedMiddleware(mockedContext, mockedNext)).rejects.toEqual(error)
-      expect(loggers[1]?.info).toHaveBeenCalledWith(`[${mockedContext.request.method}: ${mockedContext.url.pathname}][200]`)
+      expect(loggers[1]?.info).toHaveBeenCalledWith(
+        `[${mockedContext.request.method}: ${mockedContext.url.pathname}${mockedContext.url.search}${mockedContext.url.hash}][200]`
+      )
     })
   })
 })

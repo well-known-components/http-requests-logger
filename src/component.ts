@@ -21,7 +21,9 @@ export function instrumentHttpServerWithRequestLogger(
     // Skip health checks by default
     const skip = shouldSkip(ctx, config?.skip ?? [HEALTH_LIVE, HEALTH_READY])
 
-    const inLog = config?.inputLog ? config.inputLog(ctx.request) : `[${ctx.request.method}: ${ctx.url.pathname}]`
+    const inLog = config?.inputLog
+      ? config.inputLog(ctx.request)
+      : `[${ctx.request.method}: ${ctx.url.pathname}${ctx.url.search}${ctx.url.hash}]`
     if (!skipInput && !skip) {
       inLogger[verbosity](inLog)
     }
@@ -47,7 +49,9 @@ export function instrumentHttpServerWithRequestLogger(
     } finally {
       if (!skipOutput && !skip && response) {
         outLogger[verbosity](
-          config?.outputLog ? config.outputLog(ctx.request, response) : `[${ctx.request.method}: ${ctx.url.pathname}][${response.status}]`
+          config?.outputLog
+            ? config.outputLog(ctx.request, response)
+            : `[${ctx.request.method}: ${ctx.url.pathname}${ctx.url.search}${ctx.url.hash}][${response.status}]`
         )
       }
     }
