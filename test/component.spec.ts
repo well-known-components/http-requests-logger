@@ -1,5 +1,5 @@
 import { IHttpServerComponent, ILoggerComponent } from '@well-known-components/interfaces'
-import { createHttRequestsLogger } from '../src/component'
+import { instrumentHttpServerWithRequestLogger } from '../src/component'
 import { RequestLoggerConfigurations, Verbosity } from '../src/types'
 
 let options: RequestLoggerConfigurations
@@ -54,7 +54,7 @@ let response: IHttpServerComponent.IResponse
 
 describe('when initializing the component', () => {
   beforeEach(() => {
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
   })
 
   it('should instantiate the output and the input loggers', () => {
@@ -66,7 +66,7 @@ describe('when initializing the component', () => {
 describe('when the verbosity configuration is set', () => {
   beforeEach(async () => {
     options.verbosity = Verbosity.DEBUG
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
     response = await storedMiddleware(mockedContext, mockedNext)
   })
 
@@ -84,7 +84,7 @@ describe('when the verbosity configuration is set', () => {
 describe('when the verbosity configuration is not set', () => {
   beforeEach(async () => {
     options.verbosity = undefined
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
     response = await storedMiddleware(mockedContext, mockedNext)
   })
 
@@ -103,7 +103,7 @@ describe('when the skip output configuration is set', () => {
   describe('and is set to true', () => {
     beforeEach(async () => {
       options.skipOutput = true
-      createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
       response = await storedMiddleware(mockedContext, mockedNext)
     })
 
@@ -121,7 +121,7 @@ describe('when the skip output configuration is set', () => {
   describe('and is set to false', () => {
     beforeEach(async () => {
       options.skipOutput = false
-      createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
       response = await storedMiddleware(mockedContext, mockedNext)
     })
 
@@ -140,7 +140,7 @@ describe('when the skip output configuration is set', () => {
 describe('when the skip output configuration is not set', () => {
   beforeEach(async () => {
     options.skipOutput = undefined
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
     response = await storedMiddleware(mockedContext, mockedNext)
   })
 
@@ -159,7 +159,7 @@ describe('when the skip input configuration is set', () => {
   describe('and is set to true', () => {
     beforeEach(async () => {
       options.skipInput = true
-      createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
       response = await storedMiddleware(mockedContext, mockedNext)
     })
 
@@ -177,7 +177,7 @@ describe('when the skip input configuration is set', () => {
   describe('and is set to false', () => {
     beforeEach(async () => {
       options.skipInput = false
-      createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
       response = await storedMiddleware(mockedContext, mockedNext)
     })
 
@@ -196,7 +196,7 @@ describe('when the skip input configuration is set', () => {
 describe('when the skip input configuration is not set', () => {
   beforeEach(async () => {
     options.skipInput = undefined
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
     response = await storedMiddleware(mockedContext, mockedNext)
   })
 
@@ -214,7 +214,7 @@ describe('when the skip input configuration is not set', () => {
 describe('when the skip parameter is set', () => {
   beforeEach(() => {
     options.skip = '/v1/endpoint'
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
   })
 
   describe('and the log should be skipped', () => {
@@ -257,7 +257,7 @@ describe('when the skip parameter is not set', () => {
     options.skip = undefined
     mockedContext.request.url = 'http://localhost/health/live'
     mockedContext.url = new URL('http://localhost/health/live')
-    createHttRequestsLogger({ server: serverMock, logger: loggerMock }, options)
+    instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
     response = await storedMiddleware(mockedContext, mockedNext)
   })
 
@@ -269,5 +269,35 @@ describe('when the skip parameter is not set', () => {
   it('should resolve the request by continuing with the middleware execution chain', () => {
     expect(mockedNext).toHaveBeenCalled()
     expect(response).toEqual(mockedResponse)
+  })
+})
+
+describe('when any of the following middlewares fail', () => {
+  let error: object
+
+  describe('and the failure is caused with an error containing an status code', () => {
+    beforeEach(() => {
+      error = { status: 400, statusCode: 400 }
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
+      mockedNext = jest.fn().mockRejectedValueOnce(error)
+    })
+
+    it('should log the output correctly based on the status code of the exception and propagate the error', async () => {
+      await expect(storedMiddleware(mockedContext, mockedNext)).rejects.toEqual(error)
+      expect(loggers[1]?.info).toHaveBeenCalledWith(`[${mockedContext.request.method}: ${mockedContext.url.pathname}][400]`)
+    })
+  })
+
+  describe('and the failure is caused without an http error', () => {
+    beforeEach(() => {
+      error = { message: 'An error occurred' }
+      instrumentHttpServerWithRequestLogger({ server: serverMock, logger: loggerMock }, options)
+      mockedNext = jest.fn().mockRejectedValueOnce(error)
+    })
+
+    it('should log the output correctly using the status code as 200', async () => {
+      await expect(storedMiddleware(mockedContext, mockedNext)).rejects.toEqual(error)
+      expect(loggers[1]?.info).toHaveBeenCalledWith(`[${mockedContext.request.method}: ${mockedContext.url.pathname}][200]`)
+    })
   })
 })

@@ -9,7 +9,7 @@ This component logs each incoming request and response. When a request is initia
 The HTTP requests logger component is pretty straightforward to use, just import the component and initialize it with the log and the server components before any router:
 
 ```ts
-import { createHttpRequestsLogger } from '@well-known-components/http-requests-logger'
+import { instrumentHttpServerWithRequestLogger } from '@well-known-components/http-requests-logger'
 import { createConfigComponent } from '@well-known-components/env-config-provider'
 import { createServerComponent } from '@well-known-components/http-server'
 import { createLogComponent } from '@well-known-components/logger'
@@ -17,13 +17,13 @@ import { createLogComponent } from '@well-known-components/logger'
 const config = createConfigComponent(process.env, defaultValues)
 const server = await createServerComponent<GlobalContext>({ config, logs }, { cors, compression: {} })
 const logs = await createLogComponent()
-createHttpRequestsLogger({ server, logger: logs })
+instrumentHttpServerWithRequestLogger({ server, logger: logs })
 ```
 
 Although only the server and the log components are required for this component to work, it is recommended to be used alongside the [tracer](https://github.com/well-known-components/tracer-component) and [http-tracer components](https://github.com/well-known-components/http-tracer-component) to make it possible to track and match each of the input and output requests.
 
 ```ts
-import { createHttpRequestsLogger } from '@well-known-components/http-requests-logger'
+import { instrumentHttpServerWithRequestLogger } from '@well-known-components/http-requests-logger'
 import { createConfigComponent } from '@well-known-components/env-config-provider'
 import { createServerComponent } from '@well-known-components/http-server'
 import { createLogComponent } from '@well-known-components/logger'
@@ -35,7 +35,7 @@ const config = createConfigComponent(process.env, defaultValues)
 const server = await createServerComponent<GlobalContext>({ config, logs }, { cors, compression: {} })
 const logs = await createLogComponent()
 createHttpTracerComponent({ server, tracer })
-createHttpRequestsLogger({ server, logger: logs })
+instrumentHttpServerWithRequestLogger({ server, logger: logs })
 ```
 
 This set up, alongside the default configurations, will produce the following logs:
