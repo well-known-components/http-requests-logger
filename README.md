@@ -53,8 +53,8 @@ This set up, alongside the default configurations, will produce the following lo
 The component allows the following configurations via a config parameter:
 
 - verbosity: The verbosity on which the logs will be outputted. Defaults to INFO.
-- inputLog: A customizable function that defines how the input log will be outputted. Defaults to outputting `[$method: $path]`.
-- outputLog: A customizable function that defines how the output log will be outputted. Defaults to outputting `[$method: $path][$status]`.
+- inputLog: A customizable function that defines how the input log will be outputted. Defaults to outputting `[$method: $path$search$hash]`.
+- outputLog: A customizable function that defines how the output log will be outputted. Defaults to outputting `[$method: $path$search$hash][$status]`.
 - skipInput: A flag to disable the outputting of the input log.
 - skipOutput: A flag to disable the outputting of the output log.
 - skip: A flexible parameter to define how to skip the logging of endpoints. Defaults to skipping the `/health/live` endpoint.
