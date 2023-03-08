@@ -3,7 +3,7 @@ import { HEALTH_PATH } from './constants'
 import { shouldSkip } from './logic'
 import { RequestLoggerConfigurations, Verbosity } from './types'
 
-export function createHttRequestsLogger(
+export function instrumentHttpServerWithRequestLogger(
   components: {
     server: IHttpServerComponent<object>
     logger: ILoggerComponent
