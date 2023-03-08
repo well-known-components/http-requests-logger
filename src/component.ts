@@ -1,5 +1,5 @@
 import { IHttpServerComponent, ILoggerComponent } from '@well-known-components/interfaces'
-import { HEALTH_PATH } from './constants'
+import { HEALTH_LIVE, HEALTH_READY } from './constants'
 import { shouldSkip } from './logic'
 import { RequestLoggerConfigurations, Verbosity } from './types'
 
@@ -19,7 +19,7 @@ export function instrumentHttpServerWithRequestLogger(
     const skipInput = config?.skipInput
     const skipOutput = config?.skipOutput
     // Skip health checks by default
-    const skip = shouldSkip(ctx, config?.skip ?? HEALTH_PATH)
+    const skip = shouldSkip(ctx, config?.skip ?? [HEALTH_LIVE, HEALTH_READY])
 
     const inLog = config?.inputLog ? config.inputLog(ctx.request) : `[${ctx.request.method}: ${ctx.url.pathname}]`
     if (!skipInput && !skip) {
